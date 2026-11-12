@@ -1,0 +1,61 @@
+import { request } from "@/config/axios"
+
+// ==================== 类型定义 ====================
+
+export interface QueryCommentDTO {
+    targetType: string
+    targetId?: string
+    keyword?: string
+    page?: number
+    pageSize?: number
+}
+
+export interface DeleteCommentDTO {
+    commentIds: string[]
+}
+
+export interface CommentVO {
+    commentId: string
+    userId: string
+    username?: string
+    nickname?: string
+    avatar?: string
+    targetType: string
+    targetId: string
+    parentCommentId?: string
+    content: string
+    likeCount?: number
+    isLiked?: boolean
+    createTime: string
+    updateTime: string
+}
+
+// ==================== API 接口 ====================
+
+const CommentApi = {
+    /**
+     * 查询评论列表
+     * GET /comment/api/list
+     */
+    list: async (params: QueryCommentDTO) => {
+        return await request.get('/comment/api/list', { params })
+    },
+
+    /**
+     * 删除评论
+     * POST /comment/api/delete
+     */
+    delete: async (data: DeleteCommentDTO) => {
+        return await request.post('/comment/api/delete', data)
+    },
+
+    /**
+     * 获取评论总数
+     * GET /comment/api/count
+     */
+    count: async () => {
+        return await request.get('/comment/api/count')
+    }
+}
+
+export default CommentApi

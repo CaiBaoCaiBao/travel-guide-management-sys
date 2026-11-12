@@ -1,0 +1,460 @@
+http:
+  port: ${HTTP_PORT}
+admin:
+  port: ${ADMIN_PORT}
+apiEndpoints:
+  # 公开接口：登录、注册、忘记密码
+  publicApi:
+    path: "/auth/*"
+  otpApi:
+    path: "/users/mail/api/sendOtp"
+  # 用户服务公开查询接口（不需要JWT）
+  usersPublicQueryApi:
+    path: "/user/api/info"
+  usersBatchInfoApi:
+    path: "/user/api/batch-info"
+  usersCountApi:
+    path: "/user/api/count"
+  # 用户服务接口（需要JWT）
+  usersApi:
+    path: "/user/*"
+  # 内容服务公开查询接口（不需要JWT）
+  destinationPublicApi:
+    path: "/destination/api/list"
+  destinationDetailApi:
+    path: "/destination/api/detail"
+  destinationIncrementViewApi:
+    path: "/destination/api/increment-view"
+  attractionPublicApi:
+    path: "/attraction/api/list"
+  attractionDetailApi:
+    path: "/attraction/api/detail"
+  attractionIncrementViewApi:
+    path: "/attraction/api/increment-view"
+  # 游记公开查询接口（游客可访问）
+  travelNotePublicApi:
+    path: "/travel-note/api/list"
+  travelNoteHotApi:
+    path: "/travel-note/api/hot"
+  travelNoteDetailApi:
+    path: "/travel-note/api/detail"
+  travelNoteIncrementViewApi:
+    path: "/travel-note/api/increment-view"
+  # 游记私有查询接口（需要JWT，查看自己的游记）
+  travelNoteMyListApi:
+    path: "/travel-note/api/my-list"
+  travelNoteMyDetailApi:
+    path: "/travel-note/api/my-detail"
+  bannerPublicApi:
+    path: "/banner/api/active"
+  # 统计服务接口（需要JWT）
+  statisticsApi:
+    path: "/statistics/*"
+  # 内容服务管理接口（需要JWT）
+  contentApi:
+    path: "/attraction/*"
+  destinationApi:
+    path: "/destination/*"
+  ticketApi:
+    path: "/ticket/*"
+  playItemApi:
+    path: "/play-item/*"
+  travelNoteAdminApi:
+    path: "/travel-note/admin-api/*"
+  travelNoteManageApi:
+    path: "/travel-note/api/create"
+  travelNoteManageApi2:
+    path: "/travel-note/api/save-draft"
+  travelNoteManageApi3:
+    path: "/travel-note/api/publish-draft"
+  travelNoteManageApi4:
+    path: "/travel-note/api/delete"
+  travelNoteManageApi5:
+    path: "/travel-note/api/update"
+  travelNoteManageApi6:
+    path: "/travel-note/api/batch-detail"
+  travelNoteManageApi7:
+    path: "/travel-note/api/set-top"
+  bannerApi:
+    path: "/banner/*"
+  # 搜索和首页推荐接口（公开，游客可访问）
+  searchApi:
+    path: "/search/*"
+  searchLogApi:
+    path: "/search-log/*"
+  homeApi:
+    path: "/home/*"
+  # 社交服务公开查询接口（不需要JWT）
+  commentPublicApi:
+    path: "/comment/api/list"
+  commentCountApi:
+    path: "/comment/api/count"
+  commentCountByTargetApi:
+    path: "/comment/api/count-by-target"
+  commentBatchCountApi:
+    path: "/comment/api/batch-count"
+  likePublicListApi:
+    path: "/like/api/list"
+  likeCountApi:
+    path: "/like/api/count"
+  likeBatchCountApi:
+    path: "/like/api/batch-count"
+  # 社交服务接口（需要JWT）
+  commentApi:
+    path: "/comment/api/create"
+  commentApi2:
+    path: "/comment/api/delete"
+  commentApi3:
+    path: "/comment/api/reply"
+  likeApi:
+    path: "/like/api/toggle"
+  likeApi2:
+    path: "/like/api/status"
+  collectionApi:
+    path: "/collection/*"
+  # 文件服务接口（需要JWT）
+  fileApi:
+    path: "/file/*"
+
+serviceEndpoints:
+  userService:
+    url: "http://localhost:8001"
+  fileService:
+    url: "http://localhost:8003"
+  notificationService:
+    url: "http://localhost:8002"
+  contentService:
+    url: "http://localhost:8004"
+  socialService:
+    url: "http://localhost:8005"
+
+policies:
+  - cors
+  - jwt
+  - proxy
+  - request-transformer
+  - log
+
+pipelines:
+  # 公开接口管道：不需要 JWT 验证
+  userPublicPipeline:
+    apiEndpoints:
+      - publicApi
+      - otpApi
+      - usersPublicQueryApi
+      - usersBatchInfoApi
+      - usersCountApi
+    policies:
+      - cors:
+          allowOrigins:
+            - "*"
+          allowHeaders:
+            - "Content-Type"
+            - "Authorization"
+          allowMethods:
+            - "GET"
+            - "POST"
+            - "PUT"
+            - "DELETE"
+            - "OPTIONS"
+      - proxy:
+          - action:
+              serviceEndpoint: userService
+              changeOrigin: true
+
+  # 内容服务公开接口管道：不需要 JWT 验证
+  contentPublicPipeline:
+    apiEndpoints:
+      - searchApi
+      - searchLogApi
+      - homeApi
+      - destinationPublicApi
+      - destinationDetailApi
+      - destinationIncrementViewApi
+      - attractionPublicApi
+      - attractionDetailApi
+      - attractionIncrementViewApi
+      - travelNotePublicApi
+      - travelNoteHotApi
+      - travelNoteDetailApi
+      - travelNoteIncrementViewApi
+      - bannerPublicApi
+    policies:
+      - cors:
+          allowOrigins:
+            - "*"
+          allowHeaders:
+            - "Content-Type"
+            - "Authorization"
+          allowMethods:
+            - "GET"
+            - "POST"
+            - "PUT"
+            - "DELETE"
+            - "OPTIONS"
+      - log:
+          - action:
+              message: "Content Public API - Path: ${req.path}"
+      - proxy:
+          - action:
+              serviceEndpoint: contentService
+              changeOrigin: true
+
+  # 社交服务公开查询接口管道：不需要 JWT 验证
+  socialPublicQueryPipeline:
+    apiEndpoints:
+      - commentPublicApi
+      - commentCountApi
+      - commentCountByTargetApi
+      - commentBatchCountApi
+      - likePublicListApi
+      - likeCountApi
+      - likeBatchCountApi
+    policies:
+      - cors:
+          allowOrigins:
+            - "*"
+          allowHeaders:
+            - "Content-Type"
+            - "Authorization"
+          allowMethods:
+            - "GET"
+            - "POST"
+            - "PUT"
+            - "DELETE"
+            - "OPTIONS"
+      - log:
+          - action:
+              message: "Social Public Query API - Path: ${req.path}"
+      - proxy:
+          - action:
+              serviceEndpoint: socialService
+              changeOrigin: true
+
+  # 用户服务管道：需要 JWT 验证
+  userAuthPipeline:
+    apiEndpoints:
+      - usersApi
+    policies:
+      - cors:
+          allowOrigins:
+            - "*"
+          allowHeaders:
+            - "Content-Type"
+            - "Authorization"
+          allowMethods:
+            - "GET"
+            - "POST"
+            - "PUT"
+            - "DELETE"
+            - "OPTIONS"
+      - jwt:
+          - action:
+              secretOrPublicKey: |
+                -----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyFqfrFM+MdfrellP5K4Q
+                OtI3p8f9d9sOIDif2hgCPsovqLJUL6t+KA8ErLr0l3+ca7O8rM7taHqWsP1n9NDY
+                YtnmpARGze+ClbBmJAJKMdDeR8Wv2v6Zb9nJxR/pFmXy1izLvBlzbzmPrsXrWmQV
+                KG+oPDvHG/nfYRwo90VAZ13qXxTEcmfd4qmwKlWWZsTyMAx5zrKQt5pubWd28jlQ
+                JITkzNLX+Zn7zVV8TMMmNEI8QiEko6oPdC1cBMvPhVYoatMD5CxmymTYXE0qNAMF
+                9u4JIeAlQwF7WSMLRQBeHlUhhgn+PRzFLu5XHb8O6uOd+5mUZgR5sRJLjrOoX/pm
+                NwIDAQAB
+                -----END PUBLIC KEY-----
+              checkCredentialExistence: false
+              algorithms: ["RS256"]
+              credentialsLocation: "header"
+              authorizationHeaderName: "Authorization"
+      - log:
+          - action:
+              message: "JWT User Info - sub: ${req.user.sub}, userName: ${req.user.userName}, email: ${req.user.email},status: ${req.user.status}"
+      - request-transformer:
+          - action:
+              headers:
+                add:
+                  X-User-Uuid: "req.user.sub"
+                  X-User-Username: "req.user.userName"
+                  X-User-Email: "req.user.email"
+                  X-User-Nickname: "req.user.nickName"
+                  X-User-Avatar: "req.user.avatar"
+                  X-User-Role: "req.user.role"
+                  X-User-Status: "req.user.status"
+      - proxy:
+          - action:
+              serviceEndpoint: userService
+              changeOrigin: true
+
+  # 内容服务管道：需要 JWT 验证
+  contentAuthPipeline:
+    apiEndpoints:
+      - contentApi
+      - destinationApi
+      - ticketApi
+      - playItemApi
+      - travelNoteAdminApi
+      - travelNoteManageApi
+      - travelNoteManageApi2
+      - travelNoteManageApi3
+      - travelNoteManageApi4
+      - travelNoteManageApi5
+      - travelNoteManageApi6
+      - travelNoteManageApi7
+      - travelNoteMyListApi
+      - travelNoteMyDetailApi
+      - bannerApi
+      - statisticsApi
+    policies:
+      - cors:
+          allowOrigins:
+            - "*"
+          allowHeaders:
+            - "Content-Type"
+            - "Authorization"
+          allowMethods:
+            - "GET"
+            - "POST"
+            - "PUT"
+            - "DELETE"
+            - "OPTIONS"
+      - jwt:
+          - action:
+              secretOrPublicKey: |
+                -----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyFqfrFM+MdfrellP5K4Q
+                OtI3p8f9d9sOIDif2hgCPsovqLJUL6t+KA8ErLr0l3+ca7O8rM7taHqWsP1n9NDY
+                YtnmpARGze+ClbBmJAJKMdDeR8Wv2v6Zb9nJxR/pFmXy1izLvBlzbzmPrsXrWmQV
+                KG+oPDvHG/nfYRwo90VAZ13qXxTEcmfd4qmwKlWWZsTyMAx5zrKQt5pubWd28jlQ
+                JITkzNLX+Zn7zVV8TMMmNEI8QiEko6oPdC1cBMvPhVYoatMD5CxmymTYXE0qNAMF
+                9u4JIeAlQwF7WSMLRQBeHlUhhgn+PRzFLu5XHb8O6uOd+5mUZgR5sRJLjrOoX/pm
+                NwIDAQAB
+                -----END PUBLIC KEY-----
+              checkCredentialExistence: false
+              algorithms: ["RS256"]
+              credentialsLocation: "header"
+              authorizationHeaderName: "Authorization"
+      - log:
+          - action:
+              message: "Content API - User: ${req.user.userName}, Path: ${req.path}"
+      - request-transformer:
+          - action:
+              headers:
+                add:
+                  X-User-Uuid: "req.user.sub"
+                  X-User-Username: "req.user.userName"
+                  X-User-Email: "req.user.email"
+                  X-User-Nickname: "req.user.nickName"
+                  X-User-Avatar: "req.user.avatar"
+                  X-User-Role: "req.user.role"
+                  X-User-Status: "req.user.status"
+      - proxy:
+          - action:
+              serviceEndpoint: contentService
+              changeOrigin: true
+
+  # 社交服务管道：需要 JWT 验证
+  socialAuthPipeline:
+    apiEndpoints:
+      - commentApi
+      - commentApi2
+      - commentApi3
+      - likeApi
+      - likeApi2
+      - collectionApi
+    policies:
+      - cors:
+          allowOrigins:
+            - "*"
+          allowHeaders:
+            - "Content-Type"
+            - "Authorization"
+          allowMethods:
+            - "GET"
+            - "POST"
+            - "PUT"
+            - "DELETE"
+            - "OPTIONS"
+      - jwt:
+          - action:
+              secretOrPublicKey: |
+                -----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyFqfrFM+MdfrellP5K4Q
+                OtI3p8f9d9sOIDif2hgCPsovqLJUL6t+KA8ErLr0l3+ca7O8rM7taHqWsP1n9NDY
+                YtnmpARGze+ClbBmJAJKMdDeR8Wv2v6Zb9nJxR/pFmXy1izLvBlzbzmPrsXrWmQV
+                KG+oPDvHG/nfYRwo90VAZ13qXxTEcmfd4qmwKlWWZsTyMAx5zrKQt5pubWd28jlQ
+                JITkzNLX+Zn7zVV8TMMmNEI8QiEko6oPdC1cBMvPhVYoatMD5CxmymTYXE0qNAMF
+                9u4JIeAlQwF7WSMLRQBeHlUhhgn+PRzFLu5XHb8O6uOd+5mUZgR5sRJLjrOoX/pm
+                NwIDAQAB
+                -----END PUBLIC KEY-----
+              checkCredentialExistence: false
+              algorithms: ["RS256"]
+              credentialsLocation: "header"
+              authorizationHeaderName: "Authorization"
+      - log:
+          - action:
+              message: "Social API - User: ${req.user.userName}, Path: ${req.path}"
+      - request-transformer:
+          - action:
+              headers:
+                add:
+                  X-User-Uuid: "req.user.sub"
+                  X-User-Username: "req.user.userName"
+                  X-User-Email: "req.user.email"
+                  X-User-Nickname: "req.user.nickName"
+                  X-User-Avatar: "req.user.avatar"
+                  X-User-Role: "req.user.role"
+                  X-User-Status: "req.user.status"
+      - proxy:
+          - action:
+              serviceEndpoint: socialService
+              changeOrigin: true
+
+  # 文件服务管道：需要 JWT 验证
+  fileAuthPipeline:
+    apiEndpoints:
+      - fileApi
+    policies:
+      - cors:
+          allowOrigins:
+            - "*"
+          allowHeaders:
+            - "Content-Type"
+            - "Authorization"
+          allowMethods:
+            - "GET"
+            - "POST"
+            - "PUT"
+            - "DELETE"
+            - "OPTIONS"
+      - jwt:
+          - action:
+              secretOrPublicKey: |
+                -----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyFqfrFM+MdfrellP5K4Q
+                OtI3p8f9d9sOIDif2hgCPsovqLJUL6t+KA8ErLr0l3+ca7O8rM7taHqWsP1n9NDY
+                YtnmpARGze+ClbBmJAJKMdDeR8Wv2v6Zb9nJxR/pFmXy1izLvBlzbzmPrsXrWmQV
+                KG+oPDvHG/nfYRwo90VAZ13qXxTEcmfd4qmwKlWWZsTyMAx5zrKQt5pubWd28jlQ
+                JITkzNLX+Zn7zVV8TMMmNEI8QiEko6oPdC1cBMvPhVYoatMD5CxmymTYXE0qNAMF
+                9u4JIeAlQwF7WSMLRQBeHlUhhgn+PRzFLu5XHb8O6uOd+5mUZgR5sRJLjrOoX/pm
+                NwIDAQAB
+                -----END PUBLIC KEY-----
+              checkCredentialExistence: false
+              algorithms: ["RS256"]
+              credentialsLocation: "header"
+              authorizationHeaderName: "Authorization"
+      - log:
+          - action:
+              message: "File API - User: ${req.user.userName}, Path: ${req.path}"
+      - request-transformer:
+          - action:
+              headers:
+                add:
+                  X-User-Uuid: "req.user.sub"
+                  X-User-Username: "req.user.userName"
+                  X-User-Email: "req.user.email"
+                  X-User-Nickname: "req.user.nickName"
+                  X-User-Avatar: "req.user.avatar"
+                  X-User-Role: "req.user.role"
+                  X-User-Status: "req.user.status"
+      - proxy:
+          - action:
+              serviceEndpoint: fileService
+              changeOrigin: true
